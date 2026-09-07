@@ -1,0 +1,100 @@
+--- a/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
++++ b/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+@@ -32,17 +32,76 @@
+ 			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
+ 		};
+ 	};
++
++	/*
++	 * GPIO46 drives a WNM6002 N-MOS gate.  GPIO46 belongs to the
++	 * UART1 pin group, so UART1 is disabled and the group is muxed
++	 * to GPIO below.  A low PWM frequency keeps software-PWM IRQ
++	 * overhead reasonable on the single-core MT7628.
++	 */
++	fan_pwm: fan-pwm {
++		compatible = "pwm-gpio";
++		gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
++		#pwm-cells = <3>;
++	};
++
++	fan: pwm-fan {
++		compatible = "pwm-fan";
++		#cooling-cells = <2>;
++		pwms = <&fan_pwm 0 10000000 0>;
++		cooling-levels = <0 64 128 192 255>;
++	};
+ };
+ 
+ &state_default {
+ 	gpio {
+-		groups = "i2c";
++		groups = "uart1";
+ 		function = "gpio";
+ 	};
+ };
+ 
+ &uart1 {
++	status = "disabled";
++};
++
++&i2c {
+ 	status = "okay";
++	clock-frequency = <400000>;
++};
++
++&pinctrl {
++	ephy-digital;
++
++	sdxc_iot_mode: sdxc_iot_mode {
++		esd {
++			groups = "esd";
++			function = "iot";
++		};
++
++		sdxc {
++			groups = "sdmode";
++			function = "sdxc";
++		};
++	};
++};
++
++&sdhci {
++	status = "okay";
++	pinctrl-0 = <&sdxc_iot_mode>;
++	pinctrl-1 = <&sdxc_iot_mode>;
++	mediatek,cd-low;
++};
++
++&ehci {
++	status = "okay";
++};
++
++&ohci {
++	status = "okay";
++};
++
++&usbphy {
++	status = "okay";
+ };
+ 
+ &spi0 {
+--- a/target/linux/ramips/image/mt76x8.mk
++++ b/target/linux/ramips/image/mt76x8.mk
+@@ -352,6 +352,17 @@ define Device/hilink_hlk-7628n
+   IMAGE_SIZE := 32448k
+   DEVICE_VENDOR := HILINK
+   DEVICE_MODEL := HLK-7628N
++  DEVICE_VARIANT := SDIO + USB Hub + EC200 + SSD1362 + GPIO46 Fan
++  DEVICE_PACKAGES := \
++    kmod-mmc kmod-sdhci-mt7620 \
++    kmod-i2c-mt7628 i2c-tools \
++    kmod-gpio-pwm kmod-hwmon-pwmfan \
++    kmod-usb2 kmod-usb-ohci kmod-usb-storage usbutils block-mount \
++    kmod-fs-ext4 kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1 \
++    kmod-usb-acm kmod-usb-serial kmod-usb-serial-option \
++    kmod-usb-net kmod-usb-net-cdc-ether kmod-usb-net-cdc-ncm \
++    kmod-usb-net-cdc-mbim kmod-usb-net-rndis kmod-usb-net-qmi-wwan \
++    usb-modeswitch uqmi umbim luci-proto-qmi luci-proto-ncm luci-proto-mbim
+ endef
+ TARGET_DEVICES += hilink_hlk-7628n
+ 

@@ -1,0 +1,38 @@
+#!/bin/sh
+
+find_fan_hwmon() {
+	local node
+	for node in /sys/class/hwmon/hwmon*; do
+		[ -r "$node/name" ] || continue
+		[ "$(cat "$node/name")" = "pwmfan" ] || continue
+		echo "$node"
+		return 0
+	done
+	return 1
+}
+
+usage() {
+	echo "Usage: fanctl <0-255|status>" >&2
+	exit 2
+}
+
+node="$(find_fan_hwmon)" || {
+	echo "pwm-fan device not found" >&2
+	exit 1
+}
+
+case "$1" in
+	status)
+		printf 'pwm='
+		cat "$node/pwm1"
+		exit 0
+		;;
+	''|*[!0-9]*) usage ;;
+esac
+
+[ "$1" -ge 0 ] && [ "$1" -le 255 ] || usage
+[ -w "$node/pwm1_enable" ] && echo 1 > "$node/pwm1_enable"
+echo "$1" > "$node/pwm1"
+uci -q set board-hardware.main.pwm="$1"
+uci -q commit board-hardware
+

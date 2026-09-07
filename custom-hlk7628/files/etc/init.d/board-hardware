@@ -1,0 +1,41 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+STOP=10
+
+find_fan_hwmon() {
+	local node
+	for node in /sys/class/hwmon/hwmon*; do
+		[ -r "$node/name" ] || continue
+		[ "$(cat "$node/name")" = "pwmfan" ] || continue
+		echo "$node"
+		return 0
+	done
+	return 1
+}
+
+set_fan_pwm() {
+	local value="$1"
+	local node
+
+	case "$value" in
+		''|*[!0-9]*) return 1 ;;
+	esac
+	[ "$value" -ge 0 ] && [ "$value" -le 255 ] || return 1
+
+	node="$(find_fan_hwmon)" || return 1
+	[ -w "$node/pwm1_enable" ] && echo 1 > "$node/pwm1_enable"
+	echo "$value" > "$node/pwm1"
+}
+
+start() {
+	local pwm
+	config_load board-hardware
+	config_get pwm main pwm 192
+	set_fan_pwm "$pwm" || logger -t board-hardware "pwm-fan device is not ready"
+}
+
+stop() {
+	set_fan_pwm 0
+}
+
