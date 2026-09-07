@@ -1,0 +1,80 @@
+name: Build ImmortalWrt for HLK-7628N
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    paths:
+      - ".github/workflows/build-hlk7628.yml"
+      - "custom-hlk7628/**"
+
+concurrency:
+  group: hlk7628-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      TZ: Asia/Shanghai
+      BUILD_ROOT: ${{ runner.temp }}/immortalwrt-hlk7628
+      SOURCE_DIR: ${{ runner.temp }}/immortalwrt-hlk7628/source
+      CUSTOM_DIR: ${{ github.workspace }}/custom-hlk7628
+      OUTPUT_DIR: ${{ github.workspace }}/output
+      DL_CACHE_DIR: ${{ runner.temp }}/immortalwrt-download-cache
+      BUILD_JOBS: "4"
+
+    steps:
+      - name: Checkout custom firmware files
+        uses: actions/checkout@v4
+
+      - name: Install OpenWrt build dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang flex bison g++ gawk gcc-multilib \
+            g++-multilib gettext git libncurses-dev libssl-dev \
+            python3 python3-setuptools \
+            python3-pyelftools rsync swig unzip zlib1g-dev file wget \
+            curl jq libelf-dev dwarves device-tree-compiler patch \
+            ca-certificates
+
+      - name: Restore source archive cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/immortalwrt-download-cache
+          key: immortalwrt-hlk7628-dl-${{ hashFiles('custom-hlk7628/custom.config', 'custom-hlk7628/patches/*.patch') }}
+          restore-keys: |
+            immortalwrt-hlk7628-dl-
+
+      - name: Build firmware
+        run: bash custom-hlk7628/build-wsl.sh
+
+      - name: Collect diagnostic logs
+        if: always()
+        run: |
+          mkdir -p ci-logs
+          cp -f "$BUILD_ROOT"/*.log ci-logs/ 2>/dev/null || true
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: YANG-RouterOS-1.0.0-MT7628-4G-CPE-kernel-6.12.103
+          path: output/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hlk7628-build-logs
+          path: ci-logs/
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,12 @@
+output/
+*.bin
+!Breed-U-Boot/breed-mt7688-reset38.bin
+*.log
+*.ksc
+*.img
+*.tar
+*.tar.gz
+*.xz
+*.zst
+.idea/
+.vscode/

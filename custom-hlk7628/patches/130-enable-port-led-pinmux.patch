@@ -1,0 +1,24 @@
+--- a/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
++++ b/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+@@ -88,6 +88,21 @@
+ 		groups = "uart1";
+ 		function = "gpio";
+ 	};
++
++	port0_led {
++		groups = "p0led_an";
++		function = "p0led_an";
++	};
++
++	port1_led {
++		groups = "p1led_an";
++		function = "p1led_an";
++	};
++
++	port2_led {
++		groups = "p2led_an";
++		function = "p2led_an";
++	};
+ };
+ 
+ &uart1 {

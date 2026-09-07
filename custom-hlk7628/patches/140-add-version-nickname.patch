@@ -1,0 +1,57 @@
+--- a/package/base-files/image-config.in
++++ b/package/base-files/image-config.in
+@@ -184,6 +184,13 @@ if VERSIONOPT
+ 			If unspecified, it defaults to SNAPSHOT for the master branch
+ 			or to ##.##-SNAPSHOT on release branches.
+ 
++	config VERSION_NICK
++		string
++		prompt "Release nickname"
++		help
++			This is the release nickname embedded in the image and exposed as
++			DISTRIB_NICKNAME in /etc/openwrt_release.
++
+ 	config VERSION_CODE
+ 		string
+ 		prompt "Release version code"
+--- a/include/version.mk
++++ b/include/version.mk
+@@ -13,6 +13,7 @@ PKG_CONFIG_DEPENDS += \
+ 	CONFIG_VERSION_HOME_URL \
+ 	CONFIG_VERSION_BUG_URL \
+ 	CONFIG_VERSION_NUMBER \
++	CONFIG_VERSION_NICK \
+ 	CONFIG_VERSION_CODE \
+ 	CONFIG_VERSION_REPO \
+ 	CONFIG_VERSION_DIST \
+@@ -30,5 +31,8 @@ VERSION_NUMBER:=$(call qstrip,$(CONFIG_VERSION_NUMBER))
+ VERSION_NUMBER:=$(if $(VERSION_NUMBER),$(VERSION_NUMBER),25.12-SNAPSHOT)
+ 
++VERSION_NICK:=$(call qstrip,$(CONFIG_VERSION_NICK))
++VERSION_NICK:=$(if $(VERSION_NICK),$(VERSION_NICK),ImmortalWrt)
++
+ VERSION_CODE:=$(call qstrip,$(CONFIG_VERSION_CODE))
+ VERSION_CODE:=$(if $(VERSION_CODE),$(VERSION_CODE),$(REVISION))
+ 
+@@ -101,4 +105,5 @@ VERSION_SED_SCRIPT:=$(SED) 's,%U,$(call sed_escape,$(VERSION_REPO)),g' \
+ 	-e 's,%f,$(call sed_escape,$(VERSION_FIRMWARE_URL)),g' \
+ 	-e 's,%P,$(call sed_escape,$(VERSION_PRODUCT)),g' \
+ 	-e 's,%h,$(call sed_escape,$(VERSION_HWREV)),g' \
++	-e 's,%N,$(call sed_escape,$(VERSION_NICK)),g' \
+ 	-e 's,%B,$(call sed_escape,$(SOURCE_DATE_EPOCH)),g'
+--- a/package/base-files/files/etc/openwrt_release
++++ b/package/base-files/files/etc/openwrt_release
+@@ -5,3 +5,4 @@ DISTRIB_TARGET='%S'
+ DISTRIB_ARCH='%A'
+ DISTRIB_DESCRIPTION='%D %V %C'
+ DISTRIB_TAINTS='%t'
++DISTRIB_NICKNAME='%N'
+--- a/package/base-files/files/etc/banner
++++ b/package/base-files/files/etc/banner
+@@ -8,5 +8,5 @@
+ |___|__|_|  /__|_|  /\____/|__|   |__| (____  /____/
+           \/      \/  BE FREE AND UNAFRAID  \/
+  ------------------------------------------------------
+- %D %V, %C Dave's Guitar
++ %D %V, %C %N
+  ------------------------------------------------------
