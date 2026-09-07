@@ -1,4 +1,5 @@
 output/
+.ci/
 *.bin
 !Breed-U-Boot/breed-mt7688-reset38.bin
 *.log

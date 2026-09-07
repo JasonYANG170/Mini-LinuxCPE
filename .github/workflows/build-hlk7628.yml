@@ -21,11 +21,11 @@ jobs:
     timeout-minutes: 360
     env:
       TZ: Asia/Shanghai
-      BUILD_ROOT: ${{ runner.temp }}/immortalwrt-hlk7628
-      SOURCE_DIR: ${{ runner.temp }}/immortalwrt-hlk7628/source
+      BUILD_ROOT: ${{ github.workspace }}/.ci/immortalwrt-hlk7628
+      SOURCE_DIR: ${{ github.workspace }}/.ci/immortalwrt-hlk7628/source
       CUSTOM_DIR: ${{ github.workspace }}/custom-hlk7628
       OUTPUT_DIR: ${{ github.workspace }}/output
-      DL_CACHE_DIR: ${{ runner.temp }}/immortalwrt-download-cache
+      DL_CACHE_DIR: ${{ github.workspace }}/.ci/immortalwrt-download-cache
       BUILD_JOBS: "4"
 
     steps:
@@ -48,7 +48,7 @@ jobs:
       - name: Restore source archive cache
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/immortalwrt-download-cache
+          path: ${{ github.workspace }}/.ci/immortalwrt-download-cache
           key: immortalwrt-hlk7628-dl-${{ hashFiles('custom-hlk7628/custom.config', 'custom-hlk7628/patches/*.patch') }}
           restore-keys: |
             immortalwrt-hlk7628-dl-
