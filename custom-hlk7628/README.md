@@ -7,7 +7,7 @@ Pinned sources:
 
 Hardware configuration:
 
-- GPIO22-29: native MT7628 SDXC/SDIO interface, active-low card detect.
+- GPIO22-29: native MT7628 SDXC/SDIO interface using the `sdmode` pin group, with active-low card detect. Do not enable the `esd`/`iot` mux: it converts EPHY ports 1-4 into digital SDXC pads.
 - USB host: CH334P hub with EC200 cellular modem and USB storage.
 - GPIO46: WNM6002 N-MOS fan gate, exposed through `pwm-fan` at 100 Hz.
 - GPIO4/5: native I2C controller for an SSD1362 160x64 display.

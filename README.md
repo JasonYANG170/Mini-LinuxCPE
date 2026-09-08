@@ -61,6 +61,7 @@ fanctl 255
 - 交换机 LED 模式 `5` 为 Link/Activity，模式 `12` 可用于强制常亮诊断。
 - GPIO44 的旧默认设备名 `wlan0` 在当前 mac80211 中不存在，本项目已改为实测设备名 `phy0-ap0`。
 - 交换机逻辑 Port 0 实测可协商至 100baseT 全双工，并有正常收发计数。
+- SDXC 必须只使用 GPIO22–29 的 `sdmode` 复用；`esd = iot` 会禁用 EPHY Port 1–4，本项目已移除该错误配置。
 
 # 成品展示
 | 正面 | 内部 |
