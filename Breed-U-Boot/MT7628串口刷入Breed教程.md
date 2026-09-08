@@ -1,6 +1,6 @@
-# HLK-7628N / MT7628 串口刷入 Breed 教程
+# MT7628 串口刷入 Breed 
 
-本文记录在 **HLK-7628N（MediaTek MT7628AN）** 上，通过原厂 Ralink U-Boot 的串口升级功能刷入 Breed 的完整流程。
+本文记录在 **MediaTek MT7628A** 上，通过串口升级功能刷入 Breed 的完整流程。
 
 > [!WARNING]
 > Bootloader 刷写失败可能导致设备无法启动，只能使用 SPI 编程器恢复。操作期间必须保证供电稳定，并确认镜像、芯片型号和 Flash 分区完全匹配。
@@ -9,12 +9,10 @@
 
 | 项目 | 参数 |
 |---|---|
-| 模块 | Hi-Link HLK-7628N |
 | SoC | MediaTek MT7628AN |
 | 内存 | 128 MB |
 | Flash | Winbond W25Q256，32 MB |
 | 串口 | COM26，57600，8N1，无流控 |
-| 原 Bootloader | Ralink U-Boot 1.1.3 / 4.3.0.0 |
 | Breed 镜像 | `breed-mt7688-reset38.bin` |
 | Breed 版本 | 1.1 r1337，构建日期 2021-12-15 |
 
@@ -24,12 +22,6 @@
 - 恢复键：GPIO#38
 - Breed 默认管理地址：`192.168.1.1`
 
-参考资料：
-
-- [Breed 官方下载目录](https://breed.hackpascal.net/)
-- [U-Boot `loadb` / Kermit 官方文档](https://docs.u-boot.org/en/stable/usage/cmd/loadb.html)
-- [HLK-7628N 官方产品资料](https://www.hlktech.com/en/Goods-23.html)
-- [HLK OpenWrt 模块升级说明](https://h.hlktech.com/download/HLK-7628N/1/openwrt%E6%A8%A1%E5%9D%97%E5%8D%87%E7%BA%A7%E6%96%B9%E6%B3%95.pdf)
 
 ## 2. 准备工作
 
@@ -68,7 +60,7 @@ No flow control
 https://breed.hackpascal.net/breed-mt7688-reset38.bin
 ```
 
-本次使用的官方文件信息：
+文件信息：
 
 ```text
 文件大小：90074 字节
@@ -96,7 +88,7 @@ cat /proc/mtd
 cat /proc/cmdline
 ```
 
-本次设备的关键输出为：
+设备输出为：
 
 ```text
 model: HILINK HLK-7628N
@@ -126,39 +118,11 @@ ls -l /root/u-boot-before-breed.bin
 sha256sum /root/u-boot-before-breed.bin
 ```
 
-本次备份大小为 196608 字节。建议再通过 SCP、网页或其他可靠方式把备份复制到电脑上。
+备份大小为 196608 字节。建议再通过 SCP、网页或其他可靠方式把备份复制到电脑上。
 
 > [!IMPORTANT]
 > `/root` 位于 OpenWrt overlay 中。若 Bootloader 刷坏，该备份不能代替外部 SPI 编程器上的离线备份。
 
-## 5. 为什么没有直接使用 OpenWrt 的 `mtd write`
-
-常见写法是：
-
-```sh
-mtd unlock u-boot
-mtd write breed-mt7688-reset38.bin u-boot
-```
-
-但本次设备执行后返回：
-
-```text
-Could not open mtd device: u-boot
-```
-
-检查发现：
-
-```sh
-cat /sys/class/mtd/mtd0/flags
-```
-
-输出：
-
-```text
-0x800
-```
-
-这表示当前内核没有把 `mtd0` 暴露为可擦写分区。因此没有强行修改内核保护，也没有使用不匹配的 `mtd-rw.ko`，而是改用原 U-Boot 自带的 Bootloader 串口升级功能。
 
 ## 6. 进入原 U-Boot
 
@@ -324,61 +288,4 @@ Starting breed built-in shell
 breed>
 ```
 
-这不代表 Breed 刷坏。Breed 已经完成硬件初始化、识别 Flash 并进入内置命令行；错误发生在 Breed 解压原 Kwrt 内核时。
-
-处理方法是进入 Breed Web 恢复页面，重新刷入适用于 `hilink_hlk-7628n` 的兼容固件。不要把 OpenWrt `sysupgrade.bin` 当作 Bootloader 写入，也不要再次写入 `u-boot` 分区。
-
-## 12. 常见故障
-
-### 串口没有输出
-
-- 检查 TX/RX 是否交叉。
-- 检查是否共地。
-- 确认使用 UART0。
-- 确认参数为 57600 8N1。
-- 检查 COM 口是否被其他程序占用。
-
-### 错过 U-Boot 菜单
-
-重新上电或执行 `reboot -f`，看到 U-Boot 横幅后及时按 `7`。不要在未看到菜单时连续发送其他数字，以免误选升级项目。
-
-### Kermit 提示 `Too many retries`
-
-- 关闭所有其他串口软件。
-- 使用本文的小包、单窗口和 `prefixing all` 参数。
-- 确认双方波特率均为 57600。
-- 重新启动并进入菜单 `7` 后重试。
-
-### 传输中断后显示 `0 Bytes`
-
-如果串口显示：
-
-```text
-## Total Size = 0x00000000 = 0 Bytes
-```
-
-说明没有收到有效镜像。一般不会写 Flash，重新进入菜单 `7` 即可。
-
-### 刷入后完全没有串口输出
-
-可能是 Bootloader 镜像错误、写入中断或硬件连接异常。此时通常需要：
-
-1. 使用原 U-Boot 备份；
-2. 拆机连接 SPI Flash；
-3. 使用 CH341A 等编程器离线恢复。
-
-## 13. 安全检查清单
-
-刷写前逐项确认：
-
-- [ ] 设备确认为 MT7628AN/MT7688AN。
-- [ ] 串口参数为 57600 8N1。
-- [ ] Breed 文件名为 `breed-mt7688-reset38.bin`。
-- [ ] 文件大小为 90074 字节。
-- [ ] SHA-256 与官方镜像一致。
-- [ ] 已备份原 U-Boot。
-- [ ] Bootloader 分区足够容纳镜像。
-- [ ] 使用 U-Boot 菜单 `7`，没有误选系统固件升级项目。
-- [ ] 传输期间供电稳定。
-- [ ] 看到 Breed 启动横幅后才判定刷写成功。
-
+进入 Breed Web 恢复页面，重新刷入适用于 `hilink_hlk-7628n` 的兼容固件。不要把 OpenWrt `sysupgrade.bin` 当作 Bootloader 写入，也不要再次写入 `u-boot` 分区。
