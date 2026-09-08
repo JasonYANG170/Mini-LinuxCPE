@@ -3,28 +3,25 @@
 这是面向 HILINK HLK-7628N（MT7628AN）的 ImmortalWrt 25.12-SNAPSHOT
 定制构建项目。构建固定到经过本地验证的源码提交，并使用 Linux 6.12.103。
 
-## MT7628 串口刷入 Breed 教程入口
+# 系统适配
+
+路由器已适配OpenWRT ImmortalWrt 25.12-SNAPSHOT 
+支持Linux内核6.12.103
+
+| OpenWRT 25.12 Linux Kernel 6.12| Breed U-boot |
+| --- | --- |
+|![7c1a67f6f7ad758e5a9c905bf85bde93.jpg](https://image.lceda.cn/oshwhub/pullImage/79e944b359bd430fad4d9a6f793900ef.jpg)|![d91e4e891d665e680ba23cabdc63dfea.jpg](https://image.lceda.cn/oshwhub/pullImage/2c16707686ac40db9b7140207a2d942c.jpg)|
+
+
+## 刷入 Breed-UBoot 
 
 > [!CAUTION]
 > Bootloader 刷写有变砖风险。请先备份完整 Flash、Factory/ART 与 EEPROM，
 > 核对设备确为 MT7628AN/MT7688AN、串口电平为 3.3 V，并保证刷写期间供电稳定。
 
-- [查看 COM26（57600）串口刷入 Breed 完整教程](Breed-U-Boot/MT7628串口刷入Breed教程.md)
+- [查看串口刷入 Breed 完整教程](Breed-U-Boot/MT7628串口刷入Breed教程.md)
 - [Breed-U-Boot 文件说明与镜像校验值](Breed-U-Boot/README.md)
-- 教程配套镜像：`Breed-U-Boot/breed-mt7688-reset38.bin`
-
-Breed 镜像仅用于写入 Bootloader 分区，**绝不能作为 OpenWrt sysupgrade 镜像上传**。
-
-## 硬件映射
-
-- GPIO22/23/24/25/26/28/29/27：SD_WP、SD_CD、SD_D1、SD_D0、SD_CLK、SD_CMD、SD_D3、SD_D2。
-- USB Host：连接 CH334P Hub，供 EC200 4G 模块与 U 盘使用。
-- GPIO46：连接 WNM6002 N-MOS 栅极，通过 `pwm-gpio` 与 `pwm-fan` 调速。
-- GPIO4/5：硬件 I2C SCL/SDA，连接 SSD1362 160x64 屏幕。
-- GPIO43/42/41：分别复用为 MT7628 `p0led_an`、`p1led_an`、`p2led_an`，由交换机硬件驱动 Port 0/1/2 链路/活动灯。
-
-SSD1362 在本分支的 Linux 6.12 中没有可直接使用的原生 DRM/fbdev 驱动，
-因此固件先提供硬件 I2C 与 `i2c-tools`；显示内容需要后续用户态程序驱动。
+- 镜像：`Breed-U-Boot/breed-mt7688-reset38.bin`
 
 ## GitHub Actions 构建
 
@@ -34,10 +31,6 @@ SSD1362 在本分支的 Linux 6.12 中没有可直接使用的原生 DRM/fbdev �
 4. 构建成功后下载 `YANG-RouterOS-1.0.0-MT7628-4G-CPE-kernel-6.12.103` artifact。
 5. 使用 artifact 内名称含 `hilink_hlk-7628n-squashfs-sysupgrade.bin` 的镜像。
 
-推送 `.github/workflows/build-hlk7628.yml` 或 `custom-hlk7628/` 下的变更也会自动触发构建。
-
-固件品牌字段为 `YANG-RouterOS 1.0.0 / MT7628-4G-CPE / YANG-OS v1`。
-
 ## 本地 WSL 验证
 
 Ubuntu WSL 中执行：
@@ -45,9 +38,6 @@ Ubuntu WSL 中执行：
 ```bash
 bash custom-hlk7628/build-wsl.sh
 ```
-
-产物写入 `output/`，同时生成 `SHA256SUMS` 和完整 `.config`。源码提交、
-补丁、软件包及硬件操作说明见 [`custom-hlk7628/README.md`](custom-hlk7628/README.md)。
 
 ## 风扇控制
 
@@ -60,12 +50,48 @@ fanctl 128
 fanctl 255
 ```
 
-首次刷写前请备份原厂 ART/Factory、EEPROM 和完整 Flash。不要把 Breed/U-Boot
-文件当作 sysupgrade 固件上传。
 
-## 参考项目
 
-- [JasonYANG170/JDCloud-AX6000-OpenWRT](https://github.com/JasonYANG170/JDCloud-AX6000-OpenWRT)
-- [kiddin9/Kwrt](https://github.com/kiddin9/Kwrt)
-- [xinlingduyu/build-openwrt](https://github.com/xinlingduyu/build-openwrt)
-- [immortalwrt/immortalwrt](https://github.com/immortalwrt/immortalwrt)
+# 成品展示
+| 正面 | 内部 |
+| --- | --- |
+|![55d02288c010fed076bd289bb4af9c3c.jpg](https://image.lceda.cn/oshwhub/pullImage/3244ce4f27b842e8a6e5b5b8cd180766.jpg)|![ef5bb61245d1315190dbf52053799b59.jpg](https://image.lceda.cn/oshwhub/pullImage/92390fc6341d498b88f7a08ab8136f28.jpg)|
+
+
+
+
+
+
+## 功能
+- ✅支持OpenWRT 25.12系统
+- ✅支持Linux Kernel 6.12内核
+- ✅支持3X100M有线接口
+- ✅支持2.4GH 40MHz带宽
+- ✅支持802.11n 模式下可达到最高的 300Mbps
+- ✅支持TF卡/USB扩展存储
+- 🚧OLED屏幕数据显示（计划适配SSD1362 160*64屏幕）
+
+如遇问题，请向我提出issues
+
+## 项目参数
+* 本项目采用 联发科MT7628芯片，以实现无线路由功能；
+* 本项目采用 移远通信EC200 4G模组,以实现4G信号接收功能；
+* 本项目采用 沁恒CH334p 芯片,以实现USB设备连接
+
+## 开源协议
+本项目遵循CC BY-NC-SA 4.0开源协议，使用本程序时请注明出处并进行版权声明  
+本项目仅供学习研究，严禁非授权的商业获利，  
+如果您有更好的建议，欢迎PR
+
+## 实物图
+
+| PCB正面 | PCB背面 |
+| --- | --- |
+|![bcd2555e52877d8d69233d5921827625.jpg](https://image.lceda.cn/oshwhub/pullImage/ae385424c6e44543bd8d39ab2799ada5.jpg)|![fbbc196dcc839f75e37966b85f570939.jpg](https://image.lceda.cn/oshwhub/pullImage/2042319566c14a4191aa70e113fd3a60.jpg)|
+| 外壳 | 完整成品 |
+|![fb753eea4a7ee68c1100ae98cb5186fa.jpg](https://image.lceda.cn/oshwhub/pullImage/cf87679824ec4201a932adaa8c32fbc3.jpg)|![e26c371cfde8e4c45cf90c47002376c6.jpg](https://image.lceda.cn/oshwhub/pullImage/1a7dc7ac60384b449b4af9bf0409ce2e.jpg)|
+
+
+
+
+
