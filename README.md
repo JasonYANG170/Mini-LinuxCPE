@@ -1,6 +1,6 @@
-# MT7628 4G CPE 定制固件
+# Mini-LinuxCPE路由器 SDK
 
-这是面向 HILINK HLK-7628N（MT7628AN）的 ImmortalWrt 25.12-SNAPSHOT
+这是面向 Mini-LinuxCPE 的 ImmortalWrt 25.12-SNAPSHOT
 定制构建项目。构建固定到经过本地验证的源码提交，并使用 Linux 6.12.103。
 
 # 系统适配
@@ -29,7 +29,7 @@
 2. 选择 **Build ImmortalWrt for HLK-7628N**。
 3. 点击 **Run workflow**。
 4. 构建成功后下载 `YANG-RouterOS-1.0.0-MT7628-4G-CPE-kernel-6.12.103` artifact。
-5. 使用 artifact 内名称含 `hilink_hlk-7628n-squashfs-sysupgrade.bin` 的镜像。
+5. 使用 artifact 内名称含 `yang-routeros-1.0.0-ramips-mt76x8-squashfs-sysupgrade.bin` 的镜像。
 
 ## 本地 WSL 验证
 
