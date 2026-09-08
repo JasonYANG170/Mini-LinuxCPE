@@ -1,6 +1,6 @@
 # Breed U-Boot
 
-本目录保存 HLK-7628N / MT7628AN 串口救援与 Breed 刷写所需文件。
+本目录保存 MT7628AN 串口救援与 Breed 刷写所需文件。
 
 ## 文件
 
