@@ -23,6 +23,8 @@
 - [Breed-U-Boot 文件说明与镜像校验值](Breed-U-Boot/README.md)
 - 镜像：`Breed-U-Boot/breed-mt7688-reset38.bin`
 
+Breed 镜像仅用于写入 Bootloader 分区，**绝不能作为 OpenWrt sysupgrade 镜像上传**。
+
 ## GitHub Actions 构建
 
 1. 打开仓库的 **Actions** 页面。
@@ -51,6 +53,14 @@ fanctl 255
 ```
 
 
+## 串口实机验证
+
+在 Linux 6.12.103 固件上通过 COM26（57600、8N1）确认：
+
+- GPIO41/42/43 已分别进入 `p2led_an`、`p1led_an`、`p0led_an` 硬件复用。
+- 交换机 LED 模式 `5` 为 Link/Activity，模式 `12` 可用于强制常亮诊断。
+- GPIO44 的旧默认设备名 `wlan0` 在当前 mac80211 中不存在，本项目已改为实测设备名 `phy0-ap0`。
+- 交换机逻辑 Port 0 实测可协商至 100baseT 全双工，并有正常收发计数。
 
 # 成品展示
 | 正面 | 内部 |
