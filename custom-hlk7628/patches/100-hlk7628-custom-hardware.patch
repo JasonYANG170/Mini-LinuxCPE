@@ -1,6 +1,6 @@
 --- a/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
 +++ b/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
-@@ -32,17 +32,76 @@
+@@ -32,17 +32,58 @@
  			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
  		};
  	};
@@ -42,26 +42,8 @@
 +	clock-frequency = <400000>;
 +};
 +
-+&pinctrl {
-+	ephy-digital;
-+
-+	sdxc_iot_mode: sdxc_iot_mode {
-+		esd {
-+			groups = "esd";
-+			function = "iot";
-+		};
-+
-+		sdxc {
-+			groups = "sdmode";
-+			function = "sdxc";
-+		};
-+	};
-+};
-+
 +&sdhci {
 +	status = "okay";
-+	pinctrl-0 = <&sdxc_iot_mode>;
-+	pinctrl-1 = <&sdxc_iot_mode>;
 +	mediatek,cd-low;
 +};
 +
