@@ -5,6 +5,12 @@ Pinned sources:
 - ImmortalWrt source: branch `openwrt-25.12`, commit `3a0f609352e0b582fc670af865ad449a65b18e62`.
 - Kernel: `6.12.103`.
 
+System identity:
+
+- Hostname: `YANG-RouterOS`.
+- Model: `MiniLinux-CPE`.
+- Displayed firmware name: `YANG-RouterOS` (the internal `1.0.0` version remains available for artifact traceability).
+
 Hardware configuration:
 
 - GPIO22-29: native MT7628 SDXC/SDIO interface using the `sdmode` pin group, with active-low card detect. Do not enable the `esd`/`iot` mux: it converts EPHY ports 1-4 into digital SDXC pads.

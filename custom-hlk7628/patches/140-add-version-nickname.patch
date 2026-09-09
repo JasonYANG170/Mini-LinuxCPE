@@ -43,9 +43,28 @@
 +++ b/package/base-files/files/etc/openwrt_release
 @@ -5,3 +5,4 @@ DISTRIB_TARGET='%S'
  DISTRIB_ARCH='%A'
- DISTRIB_DESCRIPTION='%D %V %C'
+-DISTRIB_DESCRIPTION='%D %V %C'
++DISTRIB_DESCRIPTION='%D'
  DISTRIB_TAINTS='%t'
 +DISTRIB_NICKNAME='%N'
+--- a/package/base-files/files/usr/lib/os-release
++++ b/package/base-files/files/usr/lib/os-release
+@@ -2,7 +2,7 @@ NAME="%D"
+ VERSION="%V"
+ ID="%d"
+ ID_LIKE="lede openwrt"
+-PRETTY_NAME="%D %V"
++PRETTY_NAME="%D"
+ VERSION_ID="%v"
+ HOME_URL="%u"
+ BUG_URL="%b"
+@@ -16,5 +16,5 @@ OPENWRT_DEVICE_MANUFACTURER="%M"
+ OPENWRT_DEVICE_MANUFACTURER_URL="%m"
+ OPENWRT_DEVICE_PRODUCT="%P"
+ OPENWRT_DEVICE_REVISION="%h"
+-OPENWRT_RELEASE="%D %V %C"
++OPENWRT_RELEASE="%D"
+ OPENWRT_BUILD_DATE="%B"
 --- a/package/base-files/files/etc/banner
 +++ b/package/base-files/files/etc/banner
 @@ -8,5 +8,5 @@
@@ -53,5 +72,5 @@
            \/      \/  BE FREE AND UNAFRAID  \/
   ------------------------------------------------------
 - %D %V, %C Dave's Guitar
-+ %D %V, %C %N
++ %D
   ------------------------------------------------------

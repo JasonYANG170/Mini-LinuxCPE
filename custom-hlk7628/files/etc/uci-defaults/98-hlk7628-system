@@ -1,0 +1,5 @@
+#!/bin/sh
+
+uci -q set system.@system[0].hostname='YANG-RouterOS'
+uci commit system
+exit 0
