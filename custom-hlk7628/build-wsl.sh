@@ -60,6 +60,10 @@ grep -q '^CONFIG_VERSION_MANUFACTURER="YANG"$' .config
 grep -q '^CONFIG_VERSION_PRODUCT="YANG-OS"$' .config
 grep -q '^CONFIG_VERSION_HWREV="v1"$' .config
 grep -q '^LINUX_VERSION-6.12 = .103$' target/linux/generic/kernel-6.12
+grep -q 'model = "MiniLinux-CPE";' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+grep -q "DISTRIB_DESCRIPTION='%D'" package/base-files/files/etc/openwrt_release
+grep -q 'PRETTY_NAME="%D"' package/base-files/files/usr/lib/os-release
+grep -q "hostname='YANG-RouterOS'" files/etc/uci-defaults/98-hlk7628-system
 
 make download -j"$(nproc)" > "$BUILD_ROOT/download.log" 2>&1
 BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"

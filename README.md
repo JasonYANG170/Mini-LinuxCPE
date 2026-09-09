@@ -8,6 +8,10 @@
 路由器已适配OpenWRT ImmortalWrt 25.12-SNAPSHOT 
 支持Linux内核6.12.103
 
+- 默认主机名：`YANG-RouterOS`
+- 设备型号：`MiniLinux-CPE`
+- 固件显示名称：`YANG-RouterOS`
+
 | OpenWRT 25.12 Linux Kernel 6.12| Breed U-boot |
 | --- | --- |
 |![7c1a67f6f7ad758e5a9c905bf85bde93.jpg](https://image.lceda.cn/oshwhub/pullImage/79e944b359bd430fad4d9a6f793900ef.jpg)|![d91e4e891d665e680ba23cabdc63dfea.jpg](https://image.lceda.cn/oshwhub/pullImage/2c16707686ac40db9b7140207a2d942c.jpg)|
