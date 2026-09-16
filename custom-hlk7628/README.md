@@ -1,5 +1,10 @@
 # HLK-7628N custom ImmortalWrt build
 
+固件构建会固定拉取 `MiniLinux-CPE_OpenWRT_Console` 的已验证源码提交，
+并把 `yang-cpe-console` 与 `luci-app-yang-cpe-console` 直接编入镜像。
+首次启动后可在 LuCI 的“服务 → MiniLinux CPE”打开实时数据看板，
+无需再手工上传或安装 APK。
+
 Pinned sources:
 
 - ImmortalWrt source: branch `openwrt-25.12`, commit `3a0f609352e0b582fc670af865ad449a65b18e62`.
@@ -15,6 +20,12 @@ Hardware configuration:
 
 - GPIO22-29: native MT7628 SDXC/SDIO interface using the `sdmode` pin group, with active-low card detect. Do not enable the `esd`/`iot` mux: it converts EPHY ports 1-4 into digital SDXC pads.
 - USB host: CH334P hub with EC200 cellular modem and USB storage.
+
+CH334P 使用 Linux USB 核心内置的标准 Hub 驱动，不需要单独的 CH334P
+软件包。固件同时启用 EHCI（USB 2.0 高速）、OHCI（全速/低速）和 MT7628
+USB PHY，并包含 U 盘、USB 串口、Quectel Option、QMI、MBIM 与 NCM 驱动。
+SDXC 固定使用 3.3 V，禁用 1.8 V 切换；构建脚本会拒绝任何会把 EPHY
+Port 1–4 改作数字 SDXC 引脚的 `esd/iot` 配置。
 - GPIO46: WNM6002 N-MOS fan gate, exposed through `pwm-fan` at 100 Hz.
 - GPIO4/5: native I2C controller for an SSD1362 160x64 display.
 - GPIO43/42/41: native active-low switch LED outputs for ports 0/1/2.

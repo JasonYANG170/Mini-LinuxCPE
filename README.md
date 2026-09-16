@@ -45,6 +45,11 @@ Ubuntu WSL 中执行：
 bash custom-hlk7628/build-wsl.sh
 ```
 
+构建生成的固件已内置 `yang-cpe-console` 和
+`luci-app-yang-cpe-console` 1.1.0。刷入后进入 LuCI 的
+**服务 → MiniLinux CPE**，即可使用码表、资源与流量曲线、风扇 PWM
+控制以及 EC200 状态和配置功能，无需另外安装 APK。
+
 ## 风扇控制
 
 刷机并启动成功后：
