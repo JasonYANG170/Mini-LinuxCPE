@@ -70,11 +70,22 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Prepare release checksums
+        run: |
+          rm -f output/sha256sums
+          (
+            cd output
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 |
+              sort -z |
+              xargs -0 -r sha256sum > SHA256SUMS
+          )
+          test -s output/SHA256SUMS
+
       - name: Publish firmware to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ci-${{ github.run_number }}-${{ github.run_attempt }}
-          name: YANG-RouterOS CI build #${{ github.run_number }}
+          name: "YANG-RouterOS CI build #${{ github.run_number }}"
           target_commitish: ${{ github.sha }}
           prerelease: true
           files: output/*
