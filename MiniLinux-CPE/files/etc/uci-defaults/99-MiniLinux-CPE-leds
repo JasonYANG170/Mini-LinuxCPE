@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # mac80211 on ImmortalWrt 25.12 names the first AP interface phy0-ap0.
-# The inherited HLK-7628N board defaults still refer to the legacy wlan0
-# name, leaving the GPIO44 Wi-Fi LED permanently off.
+# Legacy Wi-Fi LED settings may still refer to wlan0,
+# leaving the GPIO44 Wi-Fi LED permanently off.
 uci -q batch <<'EOF'
 set system.led_wifi_led=led
 set system.led_wifi_led.name='wifi'

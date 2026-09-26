@@ -29,7 +29,7 @@
 
 使用 3.3V TTL 串口连接模块 UART0：
 
-| USB-TTL | HLK-7628N |
+| USB-TTL | MiniLinux-CPE |
 |---|---|
 | TX | RX0 |
 | RX | TX0 |
@@ -88,10 +88,10 @@ cat /proc/mtd
 cat /proc/cmdline
 ```
 
-设备输出为：
+迁移到独立设备目标后的预期输出示例：
 
 ```text
-model: HILINK HLK-7628N
+model: MiniLinux-CPE
 system: MediaTek MT7628AN ver:1 eco:2
 
 mtd0: 00030000 00010000 "u-boot"
@@ -288,4 +288,4 @@ Starting breed built-in shell
 breed>
 ```
 
-进入 Breed Web 恢复页面，重新刷入适用于 `hilink_hlk-7628n` 的兼容固件。不要把 OpenWrt `sysupgrade.bin` 当作 Bootloader 写入，也不要再次写入 `u-boot` 分区。
+进入 Breed Web 恢复页面，重新刷入适用于 `yang_minilinux-cpe` 的兼容固件。不要把 OpenWrt `sysupgrade.bin` 当作 Bootloader 写入，也不要再次写入 `u-boot` 分区。

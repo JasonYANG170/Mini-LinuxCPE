@@ -5,7 +5,7 @@ IMMORTALWRT_COMMIT="3a0f609352e0b582fc670af865ad449a65b18e62"
 CONSOLE_COMMIT="a70541e2109ead742c44887073b245557c453174"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-BUILD_ROOT="${BUILD_ROOT:-/root/immortalwrt-hlk7628}"
+BUILD_ROOT="${BUILD_ROOT:-/root/immortalwrt-MiniLinux-CPE}"
 SOURCE_DIR="${SOURCE_DIR:-$BUILD_ROOT/source}"
 CONSOLE_SOURCE_DIR="${CONSOLE_SOURCE_DIR:-$BUILD_ROOT/yang-cpe-console}"
 CUSTOM_DIR="${CUSTOM_DIR:-$SCRIPT_DIR}"
@@ -31,16 +31,21 @@ fi
 
 cd "$SOURCE_DIR"
 
-if [ -e .custom-hlk7628-prepared ] &&
+if ! git diff --quiet HEAD -- target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts; then
+	echo "Use a fresh source tree: the original upstream device tree must remain unchanged." >&2
+	exit 1
+fi
+
+if [ -e .MiniLinux-CPE-prepared ] &&
    [ ! -f target/linux/ramips/patches-6.12/810-pinctrl-mt76x8-select-ephy-digital-ports.patch ]; then
 	echo "Existing build tree predates the SD port 3/4 fix. Use a fresh BUILD_ROOT and SOURCE_DIR." >&2
 	exit 1
 fi
 
-if [ ! -e .feeds-hlk7628-done ]; then
+if [ ! -e .feeds-MiniLinux-CPE-done ]; then
 	./scripts/feeds update -a
 	./scripts/feeds install -a
-	touch .feeds-hlk7628-done
+	touch .feeds-MiniLinux-CPE-done
 fi
 
 if [ ! -d "$CONSOLE_SOURCE_DIR/.git" ]; then
@@ -61,20 +66,22 @@ cp "$CONSOLE_SOURCE_DIR/Makefile" package/yang-cpe-console/Makefile
 cp -a "$CONSOLE_SOURCE_DIR/files" package/yang-cpe-console/files
 cp -a "$CONSOLE_SOURCE_DIR/luci-app/." package/luci-app-yang-cpe-console/
 
-if [ ! -e .custom-hlk7628-prepared ]; then
+if [ ! -e .MiniLinux-CPE-prepared ]; then
 	for patch_file in "$CUSTOM_DIR"/patches/*.patch; do
 		patch --batch --forward -p1 < "$patch_file"
 	done
 	mkdir -p files
 	cp -a "$CUSTOM_DIR/files/." files/
 	chmod 0755 files/etc/init.d/board-hardware files/usr/sbin/fanctl
-	touch .custom-hlk7628-prepared
+	touch .MiniLinux-CPE-prepared
 fi
+
+python3 "$CUSTOM_DIR/verify-source.py" "$SOURCE_DIR"
 
 cp "$CUSTOM_DIR/custom.config" .config
 make defconfig > "$BUILD_ROOT/defconfig.log" 2>&1
 
-grep -q '^CONFIG_TARGET_ramips_mt76x8_DEVICE_hilink_hlk-7628n=y$' .config
+grep -q '^CONFIG_TARGET_ramips_mt76x8_DEVICE_yang_minilinux-cpe=y$' .config
 grep -q '^CONFIG_PACKAGE_kmod-sdhci-mt7620=y$' .config
 grep -q '^CONFIG_PACKAGE_kmod-mmc=y$' .config
 grep -q '^CONFIG_PACKAGE_kmod-i2c-mt7628=y$' .config
@@ -94,26 +101,26 @@ grep -q '^CONFIG_VERSION_MANUFACTURER="YANG"$' .config
 grep -q '^CONFIG_VERSION_PRODUCT="YANG-OS"$' .config
 grep -q '^CONFIG_VERSION_HWREV="v1"$' .config
 grep -q '^LINUX_VERSION-6.12 = .103$' target/linux/generic/kernel-6.12
-grep -q 'model = "MiniLinux-CPE";' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+grep -q 'model = "MiniLinux-CPE";' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
 grep -q 'groups = "sdmode";' target/linux/ramips/dts/mt7628an.dtsi
 grep -q 'function = "sdxc";' target/linux/ramips/dts/mt7628an.dtsi
 grep -q 'no-1-8-v;' target/linux/ramips/dts/mt7628an.dtsi
-grep -Fq 'mediatek,ephy-digital-mask = <0x18>;' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
-grep -q 'groups = "esd";' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
-grep -q 'function = "iot";' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+grep -Fq 'mediatek,ephy-digital-mask = <0x18>;' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+grep -q 'groups = "esd";' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+grep -q 'function = "iot";' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
 test -f target/linux/ramips/patches-6.12/810-pinctrl-mt76x8-select-ephy-digital-ports.patch
-if grep -Eq '^[[:space:]]*ephy-(digital|analog);' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts; then
+if grep -Eq '^[[:space:]]*ephy-(digital|analog);' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts; then
 	echo "Use the per-port EPHY mask: TF uses ports 3/4; Ethernet uses ports 0/1/2." >&2
 	exit 1
 fi
-grep -q '^&sdhci {' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
-grep -q 'mediatek,cd-low;' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
-grep -q '^&ehci {' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
-grep -q '^&ohci {' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
-grep -q '^&usbphy {' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+grep -q '^&sdhci {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+grep -q 'mediatek,cd-low;' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+grep -q '^&ehci {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+grep -q '^&ohci {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+grep -q '^&usbphy {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
 grep -q "DISTRIB_DESCRIPTION='%D'" package/base-files/files/etc/openwrt_release
 grep -q 'PRETTY_NAME="%D"' package/base-files/files/usr/lib/os-release
-grep -q "hostname='YANG-RouterOS'" files/etc/uci-defaults/98-hlk7628-system
+grep -q "hostname='YANG-RouterOS'" files/etc/uci-defaults/98-MiniLinux-CPE-system
 
 make download -j"$(nproc)" > "$BUILD_ROOT/download.log" 2>&1
 BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"
@@ -128,7 +135,7 @@ fi
 TARGET_DIR="$SOURCE_DIR/bin/targets/ramips/mt76x8"
 test -d "$TARGET_DIR"
 cp -a "$TARGET_DIR"/. "$OUTPUT_DIR"/
-cp .config "$OUTPUT_DIR/hlk7628-custom.config"
+cp .config "$OUTPUT_DIR/MiniLinux-CPE-custom.config"
 (
 	cd "$OUTPUT_DIR"
 	: > SHA256SUMS
