@@ -40,6 +40,8 @@ require('compatible = "yang,minilinux-cpe", "mediatek,mt7628an-soc";' in board,
 require('hilink' not in board.lower(), 'MiniLinux-CPE must not inherit another board identifier.')
 require('mediatek,ephy-digital-mask = <0x18>;' in board,
         'The SD PORT3/4 digital-mode configuration is missing.')
+require('mediatek,cd-poll;' in board,
+        'MiniLinux-CPE requires SD polling to bypass unreliable hardware card detection.')
 network = current('target/linux/ramips/mt76x8/base-files/etc/board.d/02_network')
 require(network.count('yang,minilinux-cpe') == 2,
         'MiniLinux-CPE network and MAC-address defaults are required.')

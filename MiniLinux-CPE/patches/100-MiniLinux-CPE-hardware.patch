@@ -96,7 +96,7 @@
 +
 +&sdhci {
 +	status = "okay";
-+	mediatek,cd-low;
++	mediatek,cd-poll;
 +};
 +
 +&ehci {
