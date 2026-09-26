@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'printf "Build failed at line %s: %s\n" "$LINENO" "$BASH_COMMAND" >&2' ERR
 
 IMMORTALWRT_COMMIT="3a0f609352e0b582fc670af865ad449a65b18e62"
 CONSOLE_COMMIT="a70541e2109ead742c44887073b245557c453174"
@@ -114,7 +115,7 @@ if grep -Eq '^[[:space:]]*ephy-(digital|analog);' target/linux/ramips/dts/mt7628
 	exit 1
 fi
 grep -q '^&sdhci {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
-grep -q 'mediatek,cd-low;' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+grep -q 'mediatek,cd-poll;' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
 grep -q '^&ehci {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
 grep -q '^&ohci {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
 grep -q '^&usbphy {' target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
