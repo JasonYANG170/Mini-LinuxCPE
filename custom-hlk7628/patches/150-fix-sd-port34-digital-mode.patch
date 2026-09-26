@@ -1,0 +1,59 @@
+--- a/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
++++ b/target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+@@ -50,7 +50,17 @@
+ 	};
+ };
+ 
++&pinctrl {
++	/* EPHY3/4 are wired to TF; keep EPHY1/2 in Ethernet analog mode. */
++	mediatek,ephy-digital-mask = <0x18>;
++};
++
+ &state_default {
++	sdxc_route {
++		groups = "esd";
++		function = "iot";
++	};
++
+ 	gpio {
+ 		groups = "uart1";
+ 		function = "gpio";
+--- /dev/null
++++ b/target/linux/ramips/patches-6.12/810-pinctrl-mt76x8-select-ephy-digital-ports.patch
+@@ -0,0 +1,36 @@
++Subject: [PATCH] pinctrl: mt76x8: select digital mode per EPHY port
++
++Allow a board to reserve EPHY3/4 for four-bit SD while retaining
++EPHY0/1/2 for Ethernet. Existing all-analog/all-digital boards keep
++their behavior. The mask uses physical port numbers as bit indices.
++
++--- a/drivers/pinctrl/mediatek/pinctrl-mt76x8.c
+++++ b/drivers/pinctrl/mediatek/pinctrl-mt76x8.c
++@@ -234,13 +234,26 @@
++ 
++ static int mt76x8_pinctrl_probe(struct platform_device *pdev)
++ {
+++	u32 digital_mask = 0;
++ 	int ret;
+++
+++	/* One bit per physical EPHY port; port 0 cannot be repurposed. */
+++	if (of_property_present(pdev->dev.of_node, "mediatek,ephy-digital-mask")) {
+++		ret = of_property_read_u32(pdev->dev.of_node,
+++					   "mediatek,ephy-digital-mask", &digital_mask);
+++		if (ret || (digital_mask & ~0x1eU) ||
+++		    of_property_present(pdev->dev.of_node, "ephy-analog") ||
+++		    of_property_present(pdev->dev.of_node, "ephy-digital"))
+++			return -EINVAL;
+++	}
++ 
++ 	ret = mtmips_pinctrl_init(pdev, mt76x8_pinmux_data);
++ 	if (ret)
++ 		return ret;
++ 
++-	if (of_property_present(pdev->dev.of_node, "ephy-analog"))
+++	if (of_property_present(pdev->dev.of_node, "mediatek,ephy-digital-mask"))
+++		rt_sysc_m32(0xf << 17, digital_mask << 16, SYSC_REG_AGPIO_CFG);
+++	else if (of_property_present(pdev->dev.of_node, "ephy-analog"))
++ 		rt_sysc_m32(0xf << 17, 0, SYSC_REG_AGPIO_CFG);
++ 	else if (of_property_present(pdev->dev.of_node, "ephy-digital"))
++ 		rt_sysc_m32(0xf << 17, 0xf << 17, SYSC_REG_AGPIO_CFG);

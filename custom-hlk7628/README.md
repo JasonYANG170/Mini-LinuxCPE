@@ -18,14 +18,17 @@ System identity:
 
 Hardware configuration:
 
-- GPIO22-29: native MT7628 SDXC/SDIO interface using the `sdmode` pin group, with active-low card detect. Do not enable the `esd`/`iot` mux: it converts EPHY ports 1-4 into digital SDXC pads.
+- GPIO22-29: native MT7628 SDXC interface on the unused EPHY3/4 pads, with active-low card detect. `sdmode = sdxc` and `esd = iot` select the route; the board-specific `mediatek,ephy-digital-mask = <0x18>` switches only EPHY3/4 to digital mode. Ethernet ports 0/1/2 remain available by design; simultaneous operation still needs hardware validation.
 - USB host: CH334P hub with EC200 cellular modem and USB storage.
 
 CH334P 使用 Linux USB 核心内置的标准 Hub 驱动，不需要单独的 CH334P
 软件包。固件同时启用 EHCI（USB 2.0 高速）、OHCI（全速/低速）和 MT7628
 USB PHY，并包含 U 盘、USB 串口、Quectel Option、QMI、MBIM 与 NCM 驱动。
-SDXC 固定使用 3.3 V，禁用 1.8 V 切换；构建脚本会拒绝任何会把 EPHY
-Port 1–4 改作数字 SDXC 引脚的 `esd/iot` 配置。
+SDXC 设备树配置为 3.3 V、禁用 1.8 V 切换。`esd/iot` 只选择 SD 信号路由，
+模拟/数字模式由 `AGPIO_CFG` 另外控制；不能仅凭 `sdmode` 判断实体管脚配置正确。
+补丁 150 增加按物理端口选择数字模式的支持：掩码 `0x18` 对应 PORT3/4，
+更新寄存器 bit19/20，并保持 PORT1/2 为模拟网口。不要使用把 PORT1–4
+全部切为数字模式的 `ephy-digital;` 属性。此修复尚未编译、刷机或实机验证。
 - GPIO46: WNM6002 N-MOS fan gate, exposed through `pwm-fan` at 100 Hz.
 - GPIO4/5: native I2C controller for an SSD1362 160x64 display.
 - GPIO43/42/41: native active-low switch LED outputs for ports 0/1/2.
@@ -48,3 +51,31 @@ The persistent default is stored in `/etc/config/board-hardware`.
 The build includes LuCI, SD/MMC, USB mass storage, USB serial/option, and
 CDC Ethernet/NCM/MBIM/RNDIS/QMI support. The EC200 operating mode still has
 to match the selected LuCI protocol and its USB composition.
+
+## SD PORT3/4 修复验证
+
+2026-09-26 串口实测：旧固件 `AGPIO_CFG=0x00e001ff`，共享管脚仍为模拟模式；
+重新绑定 SD 控制器不能消除初始化错误。用户确认 TF 使用 PORT3/4 对应管脚，
+三个网口使用 PORT0/1/2。
+
+已有构建目录若已应用旧版自定义补丁，请使用新的构建目录，例如：
+
+```sh
+BUILD_ROOT=/root/immortalwrt-hlk7628-sd34 \
+SOURCE_DIR=/root/immortalwrt-hlk7628-sd34/source \
+bash custom-hlk7628/build-wsl.sh
+```
+
+在验证固件上先检查：
+
+```sh
+cat /sys/kernel/debug/regmap/dummy-syscon@0x10000000/registers | grep -E '^(3c|60):'
+dmesg | grep -iE 'mmc|sdhci|sdxc'
+cat /proc/partitions
+block info
+```
+
+对于本次实测的初始寄存器值，预期 `3c: 00f801ff`；关键是 bit19/20 为 1、
+bit17/18 为 0，其余位按原值保留。确认出现 `mmcblk0` 及对应分区后，
+逐一验证 PORT0/1/2 的协商和实际流量，并验证重启、重新插卡后的识别。
+这只是管脚模式修复；exFAT 挂载仍需要单独的文件系统驱动。
