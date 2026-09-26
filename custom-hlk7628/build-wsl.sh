@@ -31,6 +31,12 @@ fi
 
 cd "$SOURCE_DIR"
 
+if [ -e .custom-hlk7628-prepared ] &&
+   [ ! -f target/linux/ramips/patches-6.12/810-pinctrl-mt76x8-select-ephy-digital-ports.patch ]; then
+	echo "Existing build tree predates the SD port 3/4 fix. Use a fresh BUILD_ROOT and SOURCE_DIR." >&2
+	exit 1
+fi
+
 if [ ! -e .feeds-hlk7628-done ]; then
 	./scripts/feeds update -a
 	./scripts/feeds install -a
@@ -92,8 +98,12 @@ grep -q 'model = "MiniLinux-CPE";' target/linux/ramips/dts/mt7628an_hilink_hlk-7
 grep -q 'groups = "sdmode";' target/linux/ramips/dts/mt7628an.dtsi
 grep -q 'function = "sdxc";' target/linux/ramips/dts/mt7628an.dtsi
 grep -q 'no-1-8-v;' target/linux/ramips/dts/mt7628an.dtsi
-if grep -q 'groups = "esd";' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts; then
-	echo "Invalid ESD/IOT pinmux would disable Ethernet PHY ports" >&2
+grep -Fq 'mediatek,ephy-digital-mask = <0x18>;' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+grep -q 'groups = "esd";' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+grep -q 'function = "iot";' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
+test -f target/linux/ramips/patches-6.12/810-pinctrl-mt76x8-select-ephy-digital-ports.patch
+if grep -Eq '^[[:space:]]*ephy-(digital|analog);' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts; then
+	echo "Use the per-port EPHY mask: TF uses ports 3/4; Ethernet uses ports 0/1/2." >&2
 	exit 1
 fi
 grep -q '^&sdhci {' target/linux/ramips/dts/mt7628an_hilink_hlk-7628n.dts
