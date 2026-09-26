@@ -1,0 +1,236 @@
+--- /dev/null
++++ b/target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts
+@@ -0,0 +1,176 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++
++#include "mt7628an.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	compatible = "yang,minilinux-cpe", "mediatek,mt7628an-soc";
++	model = "MiniLinux-CPE";
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		wlan {
++			function = LED_FUNCTION_WLAN;
++			color = <LED_COLOR_ID_GREEN>;
++			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
++		};
++	};
++
++	/*
++	 * GPIO46 drives a WNM6002 N-MOS gate.  GPIO46 belongs to the
++	 * UART1 pin group, so UART1 is disabled and the group is muxed
++	 * to GPIO below.  A low PWM frequency keeps software-PWM IRQ
++	 * overhead reasonable on the single-core MT7628.
++	 */
++	fan_pwm: fan-pwm {
++		compatible = "pwm-gpio";
++		gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
++		#pwm-cells = <3>;
++	};
++
++	fan: pwm-fan {
++		compatible = "pwm-fan";
++		#cooling-cells = <2>;
++		pwms = <&fan_pwm 0 10000000 0>;
++		cooling-levels = <0 64 128 192 255>;
++	};
++};
++
++&pinctrl {
++	/* EPHY3/4 are wired to TF; keep EPHY1/2 in Ethernet analog mode. */
++	mediatek,ephy-digital-mask = <0x18>;
++};
++
++&state_default {
++	sdxc_route {
++		groups = "esd";
++		function = "iot";
++	};
++
++	gpio {
++		groups = "uart1";
++		function = "gpio";
++	};
++
++	port0_led {
++		groups = "p0led_an";
++		function = "p0led_an";
++	};
++
++	port1_led {
++		groups = "p1led_an";
++		function = "p1led_an";
++	};
++
++	port2_led {
++		groups = "p2led_an";
++		function = "p2led_an";
++	};
++};
++
++&uart1 {
++	status = "disabled";
++};
++
++&i2c {
++	status = "okay";
++	clock-frequency = <400000>;
++};
++
++&sdhci {
++	status = "okay";
++	mediatek,cd-low;
++};
++
++&ehci {
++	status = "okay";
++};
++
++&ohci {
++	status = "okay";
++};
++
++&usbphy {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++
++	flash@0 {
++		compatible = "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <10000000>;
++		broken-flash-reset;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "u-boot";
++				reg = <0x0 0x30000>;
++				read-only;
++			};
++
++			partition@30000 {
++				label = "u-boot-env";
++				reg = <0x30000 0x10000>;
++				read-only;
++			};
++
++			partition@40000 {
++				label = "factory";
++				reg = <0x40000 0x10000>;
++				read-only;
++
++				nvmem-layout {
++					compatible = "fixed-layout";
++					#address-cells = <1>;
++					#size-cells = <1>;
++
++					eeprom_factory_0: eeprom@0 {
++						reg = <0x0 0x400>;
++					};
++
++					macaddr_factory_28: macaddr@28 {
++						reg = <0x28 0x6>;
++					};
++				};
++			};
++
++			partition@50000 {
++				compatible = "denx,uimage";
++				label = "firmware";
++				reg = <0x50000 0x1fb0000>;
++			};
++		};
++	};
++};
++
++&ethernet {
++	nvmem-cells = <&macaddr_factory_28>;
++	nvmem-cell-names = "mac-address";
++};
++
++&wmac {
++	status = "okay";
++
++	nvmem-cells = <&eeprom_factory_0>;
++	nvmem-cell-names = "eeprom";
++};
+--- a/target/linux/ramips/image/mt76x8.mk
++++ b/target/linux/ramips/image/mt76x8.mk
+@@ -1522,3 +1522,21 @@
+   IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
+ endef
+ TARGET_DEVICES += teltonika_rut241
++
++define Device/yang_minilinux-cpe
++  IMAGE_SIZE := 32448k
++  DEVICE_VENDOR := YANG
++  DEVICE_MODEL := MiniLinux-CPE
++  DEVICE_VARIANT := SDIO + USB Hub + EC200 + SSD1362 + GPIO46 Fan
++  DEVICE_PACKAGES := \
++    kmod-mmc kmod-sdhci-mt7620 \
++    kmod-i2c-mt7628 i2c-tools \
++    kmod-gpio-pwm kmod-hwmon-pwmfan \
++    kmod-usb2 kmod-usb-ohci kmod-usb-storage usbutils block-mount \
++    kmod-fs-ext4 kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1 \
++    kmod-usb-acm kmod-usb-serial kmod-usb-serial-option \
++    kmod-usb-net kmod-usb-net-cdc-ether kmod-usb-net-cdc-ncm \
++    kmod-usb-net-cdc-mbim kmod-usb-net-rndis kmod-usb-net-qmi-wwan \
++    usb-modeswitch uqmi umbim luci-proto-qmi luci-proto-ncm luci-proto-mbim
++endef
++TARGET_DEVICES += yang_minilinux-cpe
+--- a/target/linux/ramips/mt76x8/base-files/etc/board.d/02_network
++++ b/target/linux/ramips/mt76x8/base-files/etc/board.d/02_network
+@@ -8,6 +8,10 @@
+ 	local board="$1"
+ 
+ 	case $board in
++	yang,minilinux-cpe)
++		ucidef_add_switch "switch0" \
++			"1:lan" "2:lan" "0:wan" "6@eth0"
++		;;
+ 	7links,wlr-1230|\
+ 	7links,wlr-1240|\
+ 	alfa-network,awusfree1|\
+@@ -301,6 +305,7 @@
+ 	hiwifi,hc5861b)
+ 		wan_mac=$(macaddr_add "$(cat /sys/class/net/eth0/address)" 1)
+ 		;;
++	yang,minilinux-cpe|\
+ 	cudy,wr1000|\
+ 	hilink,hlk-7628n|\
+ 	hilink,hlk-7688a|\
+--- a/target/linux/ramips/mt76x8/base-files/etc/board.d/01_leds
++++ b/target/linux/ramips/mt76x8/base-files/etc/board.d/01_leds
+@@ -7,6 +7,9 @@
+ board_config_update
+ 
+ case $board in
++yang,minilinux-cpe)
++	ucidef_set_led_netdev "wifi_led" "wifi" "green:wlan" "phy0-ap0"
++	;;
+ 7links,wlr-1230)
+ 	ucidef_set_led_switch "lan" "lan" "orange:lan" "switch0" "0x10"
+ 	;;

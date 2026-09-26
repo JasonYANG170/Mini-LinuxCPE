@@ -1,15 +1,15 @@
-name: Build ImmortalWrt for HLK-7628N
+name: Build ImmortalWrt for MiniLinux-CPE
 
 on:
   workflow_dispatch:
   push:
     branches: [master, main]
     paths:
-      - ".github/workflows/build-hlk7628.yml"
-      - "custom-hlk7628/**"
+      - ".github/workflows/build-MiniLinux-CPE.yml"
+      - "MiniLinux-CPE/**"
 
 concurrency:
-  group: hlk7628-${{ github.ref }}
+  group: MiniLinux-CPE-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -21,9 +21,9 @@ jobs:
     timeout-minutes: 360
     env:
       TZ: Asia/Shanghai
-      BUILD_ROOT: ${{ github.workspace }}/.ci/immortalwrt-hlk7628
-      SOURCE_DIR: ${{ github.workspace }}/.ci/immortalwrt-hlk7628/source
-      CUSTOM_DIR: ${{ github.workspace }}/custom-hlk7628
+      BUILD_ROOT: ${{ github.workspace }}/.ci/immortalwrt-MiniLinux-CPE
+      SOURCE_DIR: ${{ github.workspace }}/.ci/immortalwrt-MiniLinux-CPE/source
+      CUSTOM_DIR: ${{ github.workspace }}/MiniLinux-CPE
       OUTPUT_DIR: ${{ github.workspace }}/output
       DL_CACHE_DIR: ${{ github.workspace }}/.ci/immortalwrt-download-cache
       BUILD_JOBS: "4"
@@ -49,12 +49,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ci/immortalwrt-download-cache
-          key: immortalwrt-hlk7628-dl-${{ hashFiles('custom-hlk7628/custom.config', 'custom-hlk7628/patches/*.patch') }}
+          key: immortalwrt-MiniLinux-CPE-dl-${{ hashFiles('MiniLinux-CPE/custom.config', 'MiniLinux-CPE/patches/*.patch') }}
           restore-keys: |
-            immortalwrt-hlk7628-dl-
+            immortalwrt-MiniLinux-CPE-dl-
 
       - name: Build firmware
-        run: bash custom-hlk7628/build-wsl.sh
+        run: bash MiniLinux-CPE/build-wsl.sh
 
       - name: Collect diagnostic logs
         if: always()
@@ -95,7 +95,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: hlk7628-build-logs
+          name: MiniLinux-CPE-build-logs
           path: ci-logs/
           if-no-files-found: warn
           retention-days: 14

@@ -1,4 +1,13 @@
-# HLK-7628N custom ImmortalWrt build
+# MiniLinux-CPE custom ImmortalWrt build
+
+此目录为 MiniLinux-CPE 的独立设备支持：构建目标 `yang_minilinux-cpe`，
+设备树 `mt7628an_yang_minilinux-cpe.dts`，板级标识 `yang,minilinux-cpe`。
+上游 HLK-7628N 的设备树、型号和构建目标保留原始定义；构建时自动检查这一点。
+PORT0 为 WAN，PORT1/2 为 LAN，PORT3/4 仅用于 TF 卡信号。
+
+迁移后固件文件名包含 `yang_minilinux-cpe`。旧定制固件仍使用原板级标识，
+因此升级校验可能拒绝新固件；首次迁移应先备份配置并通过 Breed 刷入匹配的固件，
+不要把新设备标识作为所有原型号硬件的通用兼容声明。
 
 固件构建会固定拉取 `MiniLinux-CPE_OpenWRT_Console` 的已验证源码提交，
 并把 `yang-cpe-console` 与 `luci-app-yang-cpe-console` 直接编入镜像。
@@ -61,9 +70,9 @@ to match the selected LuCI protocol and its USB composition.
 已有构建目录若已应用旧版自定义补丁，请使用新的构建目录，例如：
 
 ```sh
-BUILD_ROOT=/root/immortalwrt-hlk7628-sd34 \
-SOURCE_DIR=/root/immortalwrt-hlk7628-sd34/source \
-bash custom-hlk7628/build-wsl.sh
+BUILD_ROOT=/root/immortalwrt-MiniLinux-CPE-sd34 \
+SOURCE_DIR=/root/immortalwrt-MiniLinux-CPE-sd34/source \
+bash MiniLinux-CPE/build-wsl.sh
 ```
 
 在验证固件上先检查：

@@ -32,17 +32,21 @@ Breed 镜像仅用于写入 Bootloader 分区，**绝不能作为 OpenWrt sysupg
 ## GitHub Actions 构建
 
 1. 打开仓库的 **Actions** 页面。
-2. 选择 **Build ImmortalWrt for HLK-7628N**。
+2. 选择 **Build ImmortalWrt for MiniLinux-CPE**。
 3. 点击 **Run workflow**。
 4. 构建成功后下载 `YANG-RouterOS-1.0.0-MT7628-4G-CPE-kernel-6.12.103` artifact。
-5. 使用 artifact 内名称含 `yang-routeros-1.0.0-ramips-mt76x8-squashfs-sysupgrade.bin` 的镜像。
+5. 使用 artifact 内名称以 `yang_minilinux-cpe-squashfs-sysupgrade.bin` 结尾的镜像。
+
+MiniLinux-CPE 现使用独立构建目标 `yang_minilinux-cpe` 和板级标识
+`yang,minilinux-cpe`。上游 HLK-7628N 定义保持原始版本。旧定制固件首次迁移时，
+请参阅 [独立设备说明](MiniLinux-CPE/README.md)，确认升级方式。
 
 ## 本地 WSL 验证
 
 Ubuntu WSL 中执行：
 
 ```bash
-bash custom-hlk7628/build-wsl.sh
+bash MiniLinux-CPE/build-wsl.sh
 ```
 
 构建生成的固件已内置 `yang-cpe-console` 和
@@ -70,7 +74,7 @@ fanctl 255
 - 交换机 LED 模式 `5` 为 Link/Activity，模式 `12` 可用于强制常亮诊断。
 - GPIO44 的旧默认设备名 `wlan0` 在当前 mac80211 中不存在，本项目已改为实测设备名 `phy0-ap0`。
 - 交换机逻辑 Port 0 实测可协商至 100baseT 全双工，并有正常收发计数。
-- SDXC 使用 GPIO22–29（未使用的 EPHY Port 3/4 管脚）。新增待实机验证的补丁通过 `sdmode = sdxc`、`esd = iot` 和按端口数字模式掩码 `0x18` 配置 TF，保留 Port 0/1/2 网口；仅配置 `sdmode` 不足以切换模拟管脚。详见 `custom-hlk7628/README.md`。
+- SDXC 使用 GPIO22–29（未使用的 EPHY Port 3/4 管脚）。新增待实机验证的补丁通过 `sdmode = sdxc`、`esd = iot` 和按端口数字模式掩码 `0x18` 配置 TF，保留 Port 0/1/2 网口；仅配置 `sdmode` 不足以切换模拟管脚。详见 `MiniLinux-CPE/README.md`。
 
 # 成品展示
 | 正面 | 内部 |
