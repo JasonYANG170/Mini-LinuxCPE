@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [standard, spi38m]
+        variant: [standard, spi38m, full, full-spi38m]
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
@@ -55,7 +55,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ci/immortalwrt-download-cache
-          key: immortalwrt-MiniLinux-CPE-dl-${{ matrix.variant }}-${{ hashFiles('MiniLinux-CPE/custom.config', 'MiniLinux-CPE/patches/*.patch') }}
+          key: immortalwrt-MiniLinux-CPE-dl-${{ matrix.variant }}-${{ hashFiles('MiniLinux-CPE/*.config', 'MiniLinux-CPE/patches/*.patch') }}
           restore-keys: |
             immortalwrt-MiniLinux-CPE-dl-
 
@@ -89,7 +89,7 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     steps:
-      - name: Download both firmware variants
+      - name: Download all four firmware variants
         uses: actions/download-artifact@v4
         with:
           pattern: firmware-*
@@ -99,14 +99,14 @@ jobs:
         run: |
           mkdir -p output
           cp -a artifacts/firmware-standard/. output/
-          test "$(cat artifacts/firmware-spi38m/FIRMWARE_VARIANT)" = spi38m
           test "$(cat output/FIRMWARE_VARIANT)" = standard
-          for variant in standard spi38m; do
+          for variant in standard spi38m full full-spi38m; do
+            test "$(cat "artifacts/firmware-$variant/FIRMWARE_VARIANT")" = "$variant"
             (cd "artifacts/firmware-$variant" && sha256sum -c SHA256SUMS)
             find "artifacts/firmware-$variant" -maxdepth 1 -name '*initramfs-kernel.bin' | grep -q .
             find "artifacts/firmware-$variant" -maxdepth 1 -name '*squashfs-sysupgrade.bin' | grep -q .
+            (cd "artifacts/firmware-$variant" && zip -qr "../../output/MiniLinux-CPE-$variant.zip" .)
           done
-          (cd artifacts/firmware-spi38m && zip -qr ../../output/MiniLinux-CPE-spi38m.zip .)
           rm -f output/sha256sums
           (
             cd output
@@ -126,6 +126,7 @@ jobs:
           body: |
             标准固件保留原有 Linux SPI Flash 10 MHz 上限。
             MiniLinux-CPE-spi38m.zip 为额外版本，Linux SPI Flash 上限为 38.33 MHz；实际频率受整数分频限制。
-            两版均不修改 Breed，不能解决 Breed 启动阶段的 SPI 读取错误。详情见各产物内 VARIANTS.md。
+            MiniLinux-CPE-full.zip 和 MiniLinux-CPE-full-spi38m.zip 为对应频率的全功能版，增加 partexp、Argon、PassWall（Xray 核心）及 exFAT 驱动，包含 block-mount。
+            四版均不修改 Breed，不能解决 Breed 启动阶段的 SPI 读取错误。详情见各产物内 VARIANTS.md。
           files: output/*
           fail_on_unmatched_files: true

@@ -36,7 +36,8 @@ require(before and after and before.group() == after.group(),
 require('define Device/yang_minilinux-cpe\n' in current(image_path),
         'The standalone MiniLinux-CPE image definition is missing.')
 board = current('target/linux/ramips/dts/mt7628an_yang_minilinux-cpe.dts')
-rates = {'standard': 10000000, 'spi38m': 38333333}
+rates = {'standard': 10000000, 'spi38m': 38333333,
+         'full': 10000000, 'full-spi38m': 38333333}
 require(variant in rates, 'Unknown firmware variant.')
 require(f'spi-max-frequency = <{rates[variant]}>;' in board,
         'The SPI Flash frequency does not match the selected variant.')
