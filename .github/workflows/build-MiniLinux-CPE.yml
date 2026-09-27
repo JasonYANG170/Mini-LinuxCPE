@@ -17,6 +17,11 @@ permissions:
 
 jobs:
   build:
+    name: Build ${{ matrix.variant }}
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [standard, spi38m]
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
@@ -27,6 +32,7 @@ jobs:
       OUTPUT_DIR: ${{ github.workspace }}/output
       DL_CACHE_DIR: ${{ github.workspace }}/.ci/immortalwrt-download-cache
       BUILD_JOBS: "4"
+      FIRMWARE_VARIANT: ${{ matrix.variant }}
 
     steps:
       - name: Checkout custom firmware files
@@ -49,7 +55,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ci/immortalwrt-download-cache
-          key: immortalwrt-MiniLinux-CPE-dl-${{ hashFiles('MiniLinux-CPE/custom.config', 'MiniLinux-CPE/patches/*.patch') }}
+          key: immortalwrt-MiniLinux-CPE-dl-${{ matrix.variant }}-${{ hashFiles('MiniLinux-CPE/custom.config', 'MiniLinux-CPE/patches/*.patch') }}
           restore-keys: |
             immortalwrt-MiniLinux-CPE-dl-
 
@@ -65,13 +71,42 @@ jobs:
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: YANG-RouterOS-1.0.0-MT7628-4G-CPE-kernel-6.12.103
+          name: firmware-${{ matrix.variant }}
           path: output/
           if-no-files-found: error
           retention-days: 30
 
-      - name: Prepare release checksums
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiniLinux-CPE-build-logs-${{ matrix.variant }}
+          path: ci-logs/
+          if-no-files-found: warn
+          retention-days: 14
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download both firmware variants
+        uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          path: artifacts
+
+      - name: Prepare release files
         run: |
+          mkdir -p output
+          cp -a artifacts/firmware-standard/. output/
+          test "$(cat artifacts/firmware-spi38m/FIRMWARE_VARIANT)" = spi38m
+          test "$(cat output/FIRMWARE_VARIANT)" = standard
+          for variant in standard spi38m; do
+            (cd "artifacts/firmware-$variant" && sha256sum -c SHA256SUMS)
+            find "artifacts/firmware-$variant" -maxdepth 1 -name '*initramfs-kernel.bin' | grep -q .
+            find "artifacts/firmware-$variant" -maxdepth 1 -name '*squashfs-sysupgrade.bin' | grep -q .
+          done
+          (cd artifacts/firmware-spi38m && zip -qr ../../output/MiniLinux-CPE-spi38m.zip .)
           rm -f output/sha256sums
           (
             cd output
@@ -88,14 +123,9 @@ jobs:
           name: "YANG-RouterOS CI build #${{ github.run_number }}"
           target_commitish: ${{ github.sha }}
           prerelease: true
+          body: |
+            标准固件保留原有 Linux SPI Flash 10 MHz 上限。
+            MiniLinux-CPE-spi38m.zip 为额外版本，Linux SPI Flash 上限为 38.33 MHz；实际频率受整数分频限制。
+            两版均不修改 Breed，不能解决 Breed 启动阶段的 SPI 读取错误。详情见各产物内 VARIANTS.md。
           files: output/*
           fail_on_unmatched_files: true
-
-      - name: Upload build logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: MiniLinux-CPE-build-logs
-          path: ci-logs/
-          if-no-files-found: warn
-          retention-days: 14
