@@ -11,6 +11,7 @@ SOURCE_DIR="${SOURCE_DIR:-$BUILD_ROOT/source}"
 CONSOLE_SOURCE_DIR="${CONSOLE_SOURCE_DIR:-$BUILD_ROOT/yang-cpe-console}"
 CUSTOM_DIR="${CUSTOM_DIR:-$SCRIPT_DIR}"
 OUTPUT_DIR="${OUTPUT_DIR:-$PROJECT_ROOT/output}"
+FIRMWARE_VARIANT="${FIRMWARE_VARIANT:-standard}"
 
 mkdir -p "$BUILD_ROOT" "$OUTPUT_DIR"
 
@@ -77,7 +78,14 @@ if [ ! -e .MiniLinux-CPE-prepared ]; then
 	touch .MiniLinux-CPE-prepared
 fi
 
-python3 "$CUSTOM_DIR/verify-source.py" "$SOURCE_DIR"
+if [ -f .MiniLinux-CPE-variant ] &&
+   [ "$(cat .MiniLinux-CPE-variant)" != "$FIRMWARE_VARIANT" ]; then
+	echo "Use a fresh SOURCE_DIR when switching firmware variants." >&2
+	exit 1
+fi
+python3 "$CUSTOM_DIR/configure-variant.py" "$SOURCE_DIR" "$FIRMWARE_VARIANT"
+printf '%s\n' "$FIRMWARE_VARIANT" > .MiniLinux-CPE-variant
+python3 "$CUSTOM_DIR/verify-source.py" "$SOURCE_DIR" "$FIRMWARE_VARIANT"
 
 cp "$CUSTOM_DIR/custom.config" .config
 make defconfig > "$BUILD_ROOT/defconfig.log" 2>&1
@@ -137,6 +145,8 @@ TARGET_DIR="$SOURCE_DIR/bin/targets/ramips/mt76x8"
 test -d "$TARGET_DIR"
 cp -a "$TARGET_DIR"/. "$OUTPUT_DIR"/
 cp .config "$OUTPUT_DIR/MiniLinux-CPE-custom.config"
+cp "$CUSTOM_DIR/VARIANTS.md" "$OUTPUT_DIR/VARIANTS.md"
+printf '%s\n' "$FIRMWARE_VARIANT" > "$OUTPUT_DIR/FIRMWARE_VARIANT"
 (
 	cd "$OUTPUT_DIR"
 	: > SHA256SUMS
