@@ -12,6 +12,11 @@ CONSOLE_SOURCE_DIR="${CONSOLE_SOURCE_DIR:-$BUILD_ROOT/yang-cpe-console}"
 CUSTOM_DIR="${CUSTOM_DIR:-$SCRIPT_DIR}"
 OUTPUT_DIR="${OUTPUT_DIR:-$PROJECT_ROOT/output}"
 FIRMWARE_VARIANT="${FIRMWARE_VARIANT:-standard}"
+case "$FIRMWARE_VARIANT" in
+	standard|spi38m) FULL_FEATURES=0 ;;
+	full|full-spi38m) FULL_FEATURES=1 ;;
+	*) echo "Unknown firmware variant: $FIRMWARE_VARIANT" >&2; exit 1 ;;
+esac
 
 mkdir -p "$BUILD_ROOT" "$OUTPUT_DIR"
 
@@ -48,6 +53,21 @@ if [ ! -e .feeds-MiniLinux-CPE-done ]; then
 	./scripts/feeds update -a
 	./scripts/feeds install -a
 	touch .feeds-MiniLinux-CPE-done
+fi
+
+if [ "$FULL_FEATURES" = 1 ]; then
+	PARTEXP_COMMIT="236187cfe4f1fab7f2dde5279ce378324c3e5f40"
+	PARTEXP_SOURCE="$BUILD_ROOT/partexp"
+	if [ ! -d "$PARTEXP_SOURCE/.git" ]; then
+		git clone --filter=blob:none https://github.com/sirpdboy/luci-app-partexp.git "$PARTEXP_SOURCE"
+	fi
+	git -C "$PARTEXP_SOURCE" fetch origin "$PARTEXP_COMMIT"
+	git -C "$PARTEXP_SOURCE" checkout --detach "$PARTEXP_COMMIT"
+	test "$(git -C "$PARTEXP_SOURCE" rev-parse HEAD)" = "$PARTEXP_COMMIT"
+	if [ ! -e package/luci-app-partexp ]; then
+		ln -s "$PARTEXP_SOURCE/luci-app-partexp" package/luci-app-partexp
+	fi
+	./scripts/feeds install luci-app-passwall luci-theme-argon xray-core
 fi
 
 if [ ! -d "$CONSOLE_SOURCE_DIR/.git" ]; then
@@ -88,7 +108,18 @@ printf '%s\n' "$FIRMWARE_VARIANT" > .MiniLinux-CPE-variant
 python3 "$CUSTOM_DIR/verify-source.py" "$SOURCE_DIR" "$FIRMWARE_VARIANT"
 
 cp "$CUSTOM_DIR/custom.config" .config
+if [ "$FULL_FEATURES" = 1 ]; then
+	cat "$CUSTOM_DIR/full.config" >> .config
+fi
 make defconfig > "$BUILD_ROOT/defconfig.log" 2>&1
+if [ "$FULL_FEATURES" = 1 ]; then
+	for package in block-mount luci-app-partexp luci-theme-argon luci-app-passwall xray-core dnsmasq-full kmod-fs-exfat; do
+		grep -q "^CONFIG_PACKAGE_${package}=y$" .config || {
+			echo "Required full-feature package missing from defconfig: $package" >&2
+			exit 1
+		}
+	done
+fi
 
 grep -q '^CONFIG_TARGET_ramips_mt76x8_DEVICE_yang_minilinux-cpe=y$' .config
 grep -q '^CONFIG_PACKAGE_kmod-sdhci-mt7620=y$' .config
@@ -143,6 +174,18 @@ fi
 
 TARGET_DIR="$SOURCE_DIR/bin/targets/ramips/mt76x8"
 test -d "$TARGET_DIR"
+# OpenWrt may skip an oversized image without failing the entire build.
+compgen -G "$TARGET_DIR/*yang_minilinux-cpe-initramfs-kernel.bin" > /dev/null
+compgen -G "$TARGET_DIR/*yang_minilinux-cpe-squashfs-sysupgrade.bin" > /dev/null
+if [ "$FULL_FEATURES" = 1 ]; then
+	manifest="$TARGET_DIR/$(basename "$(find "$TARGET_DIR" -maxdepth 1 -name '*yang_minilinux-cpe.manifest' -print -quit)")"
+	for package in block-mount luci-app-partexp luci-theme-argon luci-app-passwall xray-core; do
+		grep -q "^${package} - " "$manifest" || {
+			echo "Required full-feature package missing from firmware manifest: $package" >&2
+			exit 1
+		}
+	done
+fi
 cp -a "$TARGET_DIR"/. "$OUTPUT_DIR"/
 cp .config "$OUTPUT_DIR/MiniLinux-CPE-custom.config"
 cp "$CUSTOM_DIR/VARIANTS.md" "$OUTPUT_DIR/VARIANTS.md"
