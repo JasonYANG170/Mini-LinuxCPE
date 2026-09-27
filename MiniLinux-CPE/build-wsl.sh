@@ -13,8 +13,8 @@ CUSTOM_DIR="${CUSTOM_DIR:-$SCRIPT_DIR}"
 OUTPUT_DIR="${OUTPUT_DIR:-$PROJECT_ROOT/output}"
 FIRMWARE_VARIANT="${FIRMWARE_VARIANT:-standard}"
 case "$FIRMWARE_VARIANT" in
-	standard|spi38m) FULL_FEATURES=0 ;;
-	full|full-spi38m) FULL_FEATURES=1 ;;
+	standard) FULL_FEATURES=0 ;;
+	full) FULL_FEATURES=1 ;;
 	*) echo "Unknown firmware variant: $FIRMWARE_VARIANT" >&2; exit 1 ;;
 esac
 
@@ -103,7 +103,6 @@ if [ -f .MiniLinux-CPE-variant ] &&
 	echo "Use a fresh SOURCE_DIR when switching firmware variants." >&2
 	exit 1
 fi
-python3 "$CUSTOM_DIR/configure-variant.py" "$SOURCE_DIR" "$FIRMWARE_VARIANT"
 printf '%s\n' "$FIRMWARE_VARIANT" > .MiniLinux-CPE-variant
 python3 "$CUSTOM_DIR/verify-source.py" "$SOURCE_DIR" "$FIRMWARE_VARIANT"
 
