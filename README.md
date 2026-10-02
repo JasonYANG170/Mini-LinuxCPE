@@ -2,7 +2,7 @@
 
 # Mini-LinuxCPE路由器 SDK
 
-这是面向 Mini-LinuxCPE 的 ImmortalWrt 25.12-SNAPSHOT
+这是 Mini-LinuxCPE 的 ImmortalWrt 25.12-SNAPSHOT
 定制构建项目。构建固定到经过本地验证的源码提交，并使用 Linux 6.12.103。
 
 # 系统适配
