@@ -16,7 +16,7 @@ Support Linux kernel 6.12.103
 
 | OpenWRT 25.12 Linux Kernel 6.12| Breed U-boot |
 | --- | --- |
-|![7c1a67f6f7ad758e5a9c905bf85bde93.jpg](https://image.lceda.cn/oshwhub/pullImage/79e944b359bd430fad4d9a6f793900ef.jpg)|![d91e4e891d665e680ba23cabdc63dfea.jpg](https://image.lceda.cn/oshwhub/pullImage/2c16707686ac40db9b7140207a2d942c.jpg)|
+|![7c1a67f6f7ad758e5a9c905bf85bde93.jpg](docs/images/system-openwrt.webp)|![d91e4e891d665e680ba23cabdc63dfea.jpg](docs/images/breed-uboot.webp)|
 
 
 ## Flash Breed-UBoot
@@ -81,7 +81,7 @@ Confirmed via COM26 (57600, 8N1) on Linux 6.12.103 firmware:
 # Finished product display
 | Front | Interior |
 | --- | --- |
-|![55d02288c010fed076bd289bb4af9c3c.jpg](https://image.lceda.cn/oshwhub/pullImage/3244ce4f27b842e8a6e5b5b8cd180766.jpg)|![ef5bb61245d1315190dbf52053799b59.jpg](https://image.lceda.cn/oshwhub/pullImage/92390fc6341d498b88f7a08ab8136f28.jpg)|
+|![55d02288c010fed076bd289bb4af9c3c.jpg](docs/images/product-front.webp)|![ef5bb61245d1315190dbf52053799b59.jpg](docs/images/product-internal.webp)|
 
 
 
@@ -113,9 +113,9 @@ If you have better suggestions, please PR
 
 | PCB front | PCB back |
 | --- | --- |
-|![bcd2555e52877d8d69233d5921827625.jpg](https://image.lceda.cn/oshwhub/pullImage/ae385424c6e44543bd8d39ab2799ada5.jpg)|![fbbc196dcc839f75e37966b85f570939.jpg](https://image.lceda.cn/oshwhub/pullImage/2042319566c14a4191aa70e113fd3a60.jpg)|
+|![bcd2555e52877d8d69233d5921827625.jpg](docs/images/pcb-front.webp)|![fbbc196dcc839f75e37966b85f570939.jpg](docs/images/pcb-back.webp)|
 | Shell | Complete product |
-|![fb753eea4a7ee68c1100ae98cb5186fa.jpg](https://image.lceda.cn/oshwhub/pullImage/cf87679824ec4201a932adaa8c32fbc3.jpg)|![e26c371cfde8e4c45cf90c47002376c6.jpg](https://image.lceda.cn/oshwhub/pullImage/1a7dc7ac60384b449b4af9bf0409ce2e.jpg)|
+|![fb753eea4a7ee68c1100ae98cb5186fa.jpg](docs/images/enclosure.webp)|![e26c371cfde8e4c45cf90c47002376c6.jpg](docs/images/assembled.webp)|
 
 
 
