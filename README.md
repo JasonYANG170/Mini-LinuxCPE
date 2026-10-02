@@ -1,3 +1,5 @@
+[简体中文](README.md) | [English](README_en.md)
+
 # Mini-LinuxCPE路由器 SDK
 
 这是面向 Mini-LinuxCPE 的 ImmortalWrt 25.12-SNAPSHOT
